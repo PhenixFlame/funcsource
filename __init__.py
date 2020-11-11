@@ -220,7 +220,7 @@ def read_file(filename, TYPE=True, errors='ignore', **kwargs):
 
 def write_file(filename, input, mode=None):
     try:
-        ext = filename.rsplit('.')
+        ext = filename.rsplit('.')[-1]
         if mode is None and ext in {'json', 'yml', 'pkl'}:
             raise ValueError(f'If you save file with .{ext} extesnion, you need to set mode')
             #
@@ -234,6 +234,12 @@ def write_file(filename, input, mode=None):
                 f.write(input)
 
         elif mode == 'pkl':
+            if hasattr(input, 'to_pickle'):
+                try:
+                    return input.to_pickle(filename)
+                except Exception:
+                    pass
+
             with open(filename, 'wb') as f:
                 pickle.dump(input, f)
 
