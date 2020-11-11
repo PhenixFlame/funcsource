@@ -43,6 +43,13 @@ except:
             print(tcolors.WARNING + repr(e) + tcolors.ENDC)
 
 
+def head(df: pd.DataFrame, n=10):
+    """
+    pretty print dataframe
+    """
+    print(df.head(n).to_string())
+
+
 # Used as @fs.cached
 def cached(cache, key=lambda *args, **kwargs: args):
     """Decorator to wrap a function with a memoizing callable that saves
