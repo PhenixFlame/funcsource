@@ -9,6 +9,11 @@ import os
 import traceback
 import json
 import pickle
+import logging
+
+"""
+TODO: add logging for all functions instead of print
+"""
 
 try:
     import requests
@@ -300,3 +305,131 @@ def catch_exceptions(*exceptions, message=None):
             pass
 
     return True
+
+
+import time
+
+
+class Timer:
+    asctime = time.asctime
+    logger = logging.getLogger('Timer')
+
+    def __init__(self, name=None, level='DEBUG', alert_period=10):
+        if name:
+            self.logger.getChild(name)
+
+        self.alert_period = alert_period
+        self.t0 = time.time()
+        self.next_alert_time = self.t0 + self.alert_period
+        self.data_quantity = None
+        self.print = getattr(self.logger, level.lower())
+
+    def start(self, message='', data_quantity=None):
+        self.t0 = time.time()
+        self.data_quantity = data_quantity
+        if message:
+            self.print(message)
+
+    def time(self, isprint=False):
+        if isprint:
+            self.print(f'Elapsed time {time.time() - self.t0:.3f} s, ')
+        return time.time()
+
+    def reset(self):
+        self.t0 = time.time()
+
+    def checktime(self, N=0, message=''):
+        if time.time() > self.next_alert_time:
+            dt = time.time() - self.t0
+
+            if N and self.data_quantity:
+                eta = dt * (self.data_quantity - N) / (N + 1)
+                self.logger.info(
+                    f'Processed {N}/{self.data_quantity} rows,'
+                    f'elapsed {dt:.2f} s,'
+                    f'remaining time {eta / 60:.1f} min, remaining ratio {100 * N / self.data_quantity:.1f} %' + message
+                )
+            else:
+                self.logger.info(
+                    f'Elapsed time {dt:.2f} s, ' + message
+                )
+            self.next_alert_time = time.time() + self.alert_period
+
+    def iter(self, iterator, Q=None):
+        """
+        Example usage:
+        >>> l = [1,2,3,4]
+        >>> for i in self.iter(l):
+        ...     time.sleep(5)
+        {"asctime": "2020-01-20 15:05:21,293", "levelname": "INFO", "message": "Start iterate through 4 items", "pathname": "/work/tardis_reps/measurements/app/meas_utils/class_timer.py", "funcName": "iter", "lineno": 59}
+        {"asctime": "2020-01-20 15:05:21,293", "levelname": "INFO", "message": "Elapsed time 0.00 sread 0 values from 4", "pathname": "/work/tardis_reps/measurements/app/meas_utils/class_timer.py", "funcName": "checktime", "lineno": 45}
+        1
+        2
+        {"asctime": "2020-01-20 15:05:31,301", "levelname": "INFO", "message": "Processed 2/4 rows,elapsed 10.01 s,remaining time 0.1 min, remaining ratio 50.0 %read 2 values from 4", "pathname": "/work/tardis_reps/measurements/app/meas_utils/class_timer.py", "funcName": "checktime", "lineno": 41}
+        3
+        4
+        """
+
+        self.t0 = time.time()
+
+        if Q is not None:
+            self.data_quantity = Q
+            self.logger.info(f'Start iterate through {self.data_quantity} items')
+            f_str = f' from {self.data_quantity}'
+        else:
+            try:
+                self.data_quantity = len(iterator)
+                self.logger.info(f'Start iterate through {self.data_quantity} items')
+                f_str = f' from {self.data_quantity}'
+            except Exception:
+                self.data_quantity = None
+                f_str = ''
+
+        for N, args in enumerate(iterator):
+            self.checktime(N, message=f'read {N} values' + f_str)
+            yield args
+
+    def decor(self, call_func, Q=None):
+        """
+        decorate function for Dataframe.apply.
+        For example:
+        >>> l = ['1', '2', '3', '4']
+        ... f = self.decor(int, len(l))
+        ... for i in l:
+        ...     print(f(i))
+        ...     time.sleep(5)
+        {"asctime": "2020-01-20 15:20:34,751", "levelname": "INFO", "message": "Start iterate through 4 items", "pathname": "/work/tardis_reps/measurements/app/meas_utils/class_timer.py", "funcName": "decor", "lineno": 93}
+        {"asctime": "2020-01-20 15:20:34,751", "levelname": "INFO", "message": "Elapsed time 0.00 sexecute call #0 from 4", "pathname": "/work/tardis_reps/measurements/app/meas_utils/class_timer.py", "funcName": "checktime", "lineno": 45}
+        1
+        2
+        {"asctime": "2020-01-20 15:20:44,761", "levelname": "INFO", "message": "Processed 2/4 rows,elapsed 10.01 s,remaining time 0.1 min, remaining ratio 50.0 %execute call #2 from 4", "pathname": "/work/tardis_reps/measurements/app/meas_utils/class_timer.py", "funcName": "checktime", "lineno": 41}
+        3
+        4
+        """
+
+        self.t0 = time.time()
+
+        if Q is not None:
+            self.data_quantity = Q
+            self.logger.info(f'Start iterate through {self.data_quantity} items')
+            f_str = f' from {self.data_quantity}'
+        else:
+            self.data_quantity = 1
+            f_str = ''
+
+        self_counter = 0
+
+        def wrapper(*args, **kwargs):
+            nonlocal self_counter
+            self.checktime(self_counter, message=f'execute call #{self_counter}' + f_str)
+            self_counter += 1
+            return call_func(*args, **kwargs)
+
+        return wrapper
+
+    @contextmanager
+    def manager(self):
+        self.start('start timer')
+        yield
+        self.time('stop timer')
+        return True
