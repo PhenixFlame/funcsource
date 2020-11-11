@@ -247,7 +247,7 @@ def write_file(filename, input, mode=None):
                     f.write(input)
         return True
     except Exception as e:
-        return str(e)
+        return repr(e)
 
 
 
