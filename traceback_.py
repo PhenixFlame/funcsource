@@ -18,7 +18,6 @@ def locals_gen(tb):
 
 
 def frame_format(tb):
-
     code = tb.tb_frame.f_code
     filename = code.co_filename
     lineno = tb.tb_lineno
@@ -44,11 +43,9 @@ def code_window(tb, window=None):
     # ----->> code[line] <------------
     s = code[line]
 
-    m = max(map(len, code[start:end]))
     x = s.lstrip(' \t')
-    l = len(s.expandtabs()) - len(x) - 2
-    s = '-' * l, '>|', x.strip(' \n\t'), '|<'
-    s = ''.join(s).ljust(m, '-') + '\n'
+    l = len(s.expandtabs()) - len(x) - 3
+    s = join('>' * l, '>| ', x)
     yield s
     # --END--->|code[line]|<------------
 
@@ -57,28 +54,35 @@ def code_window(tb, window=None):
 
 def format_exception(e, need_locals=True):
     """
-    format message about exception e with local variables
-    :param e:
-    :param need_locals:
-    :return:
+
+    Generator
+
+    format message about exception e with local variables. For Example:
+
+       File "/HOME/PyCharmProjects/DuckHunterBot/funcsource/__init__.py", line 348, in log_errors
+         try:
+     ------>|yield|<-------------
+         except exceptions as e:
+
+    :param e: exception object
+    :param need_locals: flag
+
     """
     tb = sys.exc_info()[2]
-    exception = "{}: {}\n".format(type(e).__name__, str(e))
-    l_tb = list(tb_gen(tb))
+    # ExampleError: example object has no attribute 'getChild'
+    yield "{}: {}\n".format(type(e).__name__, str(e))
 
-    ss = [exception]
-    for tb_i in l_tb[:-1]:
-        ss.append('  ' + frame_format(tb_i))
-        for c in code_window(tb_i, 3):
-            ss.append('    ' + c)
+    while tb.tb_next:
+        yield '  ' + frame_format(tb)
+        for c in code_window(tb, 3):
+            yield '    ' + c
+        tb = tb.tb_next
 
-    last = l_tb[-1]
-    ss.append('  ' + frame_format(last))
-    for c in code_window(last, None):
-        ss.append('    ' + c)
+    yield '  ' + frame_format(tb)
+    for c in code_window(tb, None):
+        yield '    ' + c
 
     if need_locals:
-        ss.append('LOCALS:\n')
-        for l in locals_gen(last):
-            ss.append('    ' + l)
-    return ss
+        yield 'LOCALS:\n'
+        for l in locals_gen(tb):
+            yield '    ' + l
