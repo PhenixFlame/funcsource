@@ -357,18 +357,24 @@ class Timer:
     asctime = time.asctime
     logger = logging.getLogger('Timer')
 
-    def __init__(self, name=None, level='DEBUG', alert_period=10):
-        if name:
-            self.logger.getChild(name)
+    def __init__(self, name=None, logger=None, level='DEBUG', alert_period=10):
+
+        if logger is not None:
+            self.logger = logger
+
+        if name is not None:
+            self.logger = self.logger.getChild(name)
 
         self.alert_period = alert_period
         self.t0 = time.time()
         self.next_alert_time = self.t0 + self.alert_period
         self.data_quantity = None
         self.print = getattr(self.logger, level.lower())
+        self.counter = 0
 
-    def start(self, message='', data_quantity=None):
+    def start(self, data_quantity=None, message=''):
         self.t0 = time.time()
+        self.counter = 0
         self.data_quantity = data_quantity
         if message:
             self.print(message)
@@ -381,19 +387,23 @@ class Timer:
     def reset(self):
         self.t0 = time.time()
 
+    def count(self, message=''):
+        self.counter += 1
+        self.checktime(self.counter, message=message)
+
     def checktime(self, N=0, message=''):
         if time.time() > self.next_alert_time:
             dt = time.time() - self.t0
 
             if N and self.data_quantity:
                 eta = dt * (self.data_quantity - N) / (N + 1)
-                self.logger.info(
+                self.print(
                     f'Processed {N}/{self.data_quantity} rows,'
                     f'elapsed {dt:.2f} s,'
                     f'remaining time {eta / 60:.1f} min, remaining ratio {100 * N / self.data_quantity:.1f} %' + message
                 )
             else:
-                self.logger.info(
+                self.print(
                     f'Elapsed time {dt:.2f} s, ' + message
                 )
             self.next_alert_time = time.time() + self.alert_period
@@ -410,12 +420,12 @@ class Timer:
 
         if Q is not None:
             self.data_quantity = Q
-            self.logger.info(f'Start iterate through {self.data_quantity} items')
+            self.print(f'Start iterate through {self.data_quantity} items')
             f_str = f' from {self.data_quantity}'
         else:
             try:
                 self.data_quantity = len(iterator)
-                self.logger.info(f'Start iterate through {self.data_quantity} items')
+                self.print(f'Start iterate through {self.data_quantity} items')
                 f_str = f' from {self.data_quantity}'
             except Exception:
                 self.data_quantity = None
@@ -440,7 +450,7 @@ class Timer:
 
         if Q is not None:
             self.data_quantity = Q
-            self.logger.info(f'Start iterate through {self.data_quantity} items')
+            self.print(f'Start iterate through {self.data_quantity} items')
             f_str = f' from {self.data_quantity}'
         else:
             self.data_quantity = 1
@@ -460,5 +470,5 @@ class Timer:
     def manager(self):
         self.start('start timer')
         yield
-        self.time('stop timer')
+        self.time()
         return True
