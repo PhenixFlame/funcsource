@@ -5,11 +5,14 @@ TODO:
 """
 
 from contextlib import contextmanager
+import sys
 import os
 import traceback
 import json
 import pickle
 import logging
+from .traceback_ import format_exception, format_traceback
+import time
 
 """
 TODO: add logging for all functions instead of print
@@ -307,7 +310,47 @@ def catch_exceptions(*exceptions, message=None):
     return True
 
 
-import time
+def logged(*exceptions, logger=None, level='ERROR'):
+    if not exceptions:
+        exceptions = (Exception,)
+
+    if logger is None:
+        logger = logging.getLogger()
+
+    print_log = getattr(logger, level.lower())
+
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            try:
+                func(*args, **kwargs)
+            except exceptions as e:
+                print_log(f"{repr(e)} in {func.__name__}, \n"
+                          f"{format_traceback(sys.exc_info()[2].tb_next)}")
+                raise e
+
+        return wrapper
+
+    return decorator
+
+
+@contextmanager
+def log_errors(logger=None, *exceptions, level='ERROR'):
+    if not exceptions:
+        exceptions = (Exception,)
+
+    if logger is None:
+        logger = logging.getLogger()
+
+    logger = logger.getChild('LOG_ERRORS')
+
+    print_log = getattr(logger, level.lower())
+
+    try:
+        yield
+    except exceptions as e:
+        print_log(''.join(format_exception(e)))
+        print('log_errors manager')
+        raise e
 
 
 class Timer:
