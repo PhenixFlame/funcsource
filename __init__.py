@@ -66,6 +66,7 @@ def cached(cache, key=lambda *args, **kwargs: args):
     main idea from cachetools.cached
 
     """
+
     def decorator(func):
         def wrapper(*args, **kwargs):
             k = key(*args, **kwargs)
@@ -79,7 +80,9 @@ def cached(cache, key=lambda *args, **kwargs: args):
             except ValueError:
                 pass  # value too large
             return v
+
         return wrapper
+
     return decorator
 
 
@@ -143,13 +146,13 @@ def decor_dump_to_pkl(display_name, dumppath):
                 result = call_func(*args, **kwargs)
                 write_file(filename, result, 'pkl')
                 return result
+
         return wrapper
 
     return decorator
 
 
 def url_get(url, proxies=False, headers=None):
-
     if not proxies:
         proxies = {}
     with requests.Session() as session:
@@ -157,7 +160,6 @@ def url_get(url, proxies=False, headers=None):
 
 
 def soup(content='', headers=None):
-
     if content.startswith('http'):
         content = url_get(content, headers=headers)
 
@@ -179,8 +181,7 @@ class CustomJSONEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def jdumps(o, indent=2, ensure_ascii=0, sort_keys=1, cls=CustomJSONEncoder, **kwargs):
-
+def jdumps(o, indent=2, ensure_ascii=False, sort_keys=True, cls=CustomJSONEncoder, **kwargs):
     return json.dumps(o, ensure_ascii=ensure_ascii, indent=indent, sort_keys=sort_keys, cls=cls, **kwargs)
 
 
@@ -233,7 +234,7 @@ def read_file(filename, TYPE=True, errors='ignore', **kwargs):
             raise e
 
 
-def write_file(filename, input, mode=None):
+def write_file(filename, obj, mode=None):
     try:
         ext = filename.rsplit('.')[-1]
         if mode is None and ext in {'json', 'yml', 'pkl'}:
@@ -242,34 +243,33 @@ def write_file(filename, input, mode=None):
             # if ext in {'json', 'yml', 'pkl'}:
             #     print(f'WARNING!!! YOU SAVE {ext} IN RAW MODE')
             # with open(filename, 'w') as f:
-            #     f.write(input)
+            #     f.write(obj)
 
-        elif mode == 'wb' or isinstance(input, bytes):
+        elif mode == 'wb' or isinstance(obj, bytes):
             with open(filename, 'wb') as f:
-                f.write(input)
+                f.write(obj)
 
         elif mode == 'pkl':
-            if hasattr(input, 'to_pickle'):
+            if hasattr(obj, 'to_pickle'):
                 try:
-                    return input.to_pickle(filename)
+                    return obj.to_pickle(filename)
                 except Exception:
                     pass
 
             with open(filename, 'wb') as f:
-                pickle.dump(input, f)
+                pickle.dump(obj, f)
 
         else:
             with open(filename, 'w') as f:
                 if mode == 'json':
-                    f.write(jdumps(input))
+                    f.write(jdumps(obj))
                 elif mode == 'yaml':
-                    f.write(ydumps(input))
+                    f.write(ydumps(obj))
                 else:
-                    f.write(input)
+                    f.write(obj)
         return True
     except Exception as e:
         return repr(e)
-
 
 
 @contextmanager
@@ -404,13 +404,6 @@ class Timer:
         >>> l = [1,2,3,4]
         >>> for i in self.iter(l):
         ...     time.sleep(5)
-        {"asctime": "2020-01-20 15:05:21,293", "levelname": "INFO", "message": "Start iterate through 4 items", "pathname": "/work/tardis_reps/measurements/app/meas_utils/class_timer.py", "funcName": "iter", "lineno": 59}
-        {"asctime": "2020-01-20 15:05:21,293", "levelname": "INFO", "message": "Elapsed time 0.00 sread 0 values from 4", "pathname": "/work/tardis_reps/measurements/app/meas_utils/class_timer.py", "funcName": "checktime", "lineno": 45}
-        1
-        2
-        {"asctime": "2020-01-20 15:05:31,301", "levelname": "INFO", "message": "Processed 2/4 rows,elapsed 10.01 s,remaining time 0.1 min, remaining ratio 50.0 %read 2 values from 4", "pathname": "/work/tardis_reps/measurements/app/meas_utils/class_timer.py", "funcName": "checktime", "lineno": 41}
-        3
-        4
         """
 
         self.t0 = time.time()
@@ -441,13 +434,6 @@ class Timer:
         ... for i in l:
         ...     print(f(i))
         ...     time.sleep(5)
-        {"asctime": "2020-01-20 15:20:34,751", "levelname": "INFO", "message": "Start iterate through 4 items", "pathname": "/work/tardis_reps/measurements/app/meas_utils/class_timer.py", "funcName": "decor", "lineno": 93}
-        {"asctime": "2020-01-20 15:20:34,751", "levelname": "INFO", "message": "Elapsed time 0.00 sexecute call #0 from 4", "pathname": "/work/tardis_reps/measurements/app/meas_utils/class_timer.py", "funcName": "checktime", "lineno": 45}
-        1
-        2
-        {"asctime": "2020-01-20 15:20:44,761", "levelname": "INFO", "message": "Processed 2/4 rows,elapsed 10.01 s,remaining time 0.1 min, remaining ratio 50.0 %execute call #2 from 4", "pathname": "/work/tardis_reps/measurements/app/meas_utils/class_timer.py", "funcName": "checktime", "lineno": 41}
-        3
-        4
         """
 
         self.t0 = time.time()
