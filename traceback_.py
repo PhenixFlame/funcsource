@@ -52,6 +52,23 @@ def code_window(tb, window=None):
     yield from code[line + 1: end]
 
 
+def format_traceback(tb, need_locals=True):
+    while tb.tb_next:
+        yield '  ' + frame_format(tb)
+        for c in code_window(tb, 3):
+            yield '    ' + c
+        tb = tb.tb_next
+
+    yield '  ' + frame_format(tb)
+    for c in code_window(tb, None):
+        yield '    ' + c
+
+    if need_locals:
+        yield 'LOCALS:\n'
+        for l in locals_gen(tb):
+            yield '    ' + l
+
+
 def format_exception(e, need_locals=True):
     """
 
@@ -69,20 +86,8 @@ def format_exception(e, need_locals=True):
 
     """
     tb = sys.exc_info()[2]
+
     # ExampleError: example object has no attribute 'getChild'
     yield "{}: {}\n".format(type(e).__name__, str(e))
 
-    while tb.tb_next:
-        yield '  ' + frame_format(tb)
-        for c in code_window(tb, 3):
-            yield '    ' + c
-        tb = tb.tb_next
-
-    yield '  ' + frame_format(tb)
-    for c in code_window(tb, None):
-        yield '    ' + c
-
-    if need_locals:
-        yield 'LOCALS:\n'
-        for l in locals_gen(tb):
-            yield '    ' + l
+    yield from format_traceback(tb, need_locals)
