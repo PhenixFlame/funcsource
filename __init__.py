@@ -185,9 +185,24 @@ def jdumps(o, indent=2, ensure_ascii=False, sort_keys=True, cls=CustomJSONEncode
     return json.dumps(o, ensure_ascii=ensure_ascii, indent=indent, sort_keys=sort_keys, cls=cls, **kwargs)
 
 
-def ydumps(o):
+def ydumps(o, sort_keys=True, **kwargs):
     # TODO: need read about custom encoders
-    return yaml.safe_dump(o, allow_unicode=True)
+    # allowed kwargs:
+    # stream=None,
+    # Dumper=Dumper,
+    # default_style=None,
+    # default_flow_style=False,
+    # canonical=None,
+    # indent=None,
+    # width=None,
+    # allow_unicode=None,
+    # line_break=None,
+    # encoding=None,
+    # explicit_start=None,
+    # explicit_end=None,
+    # version=None,
+    # tags=None,
+    return yaml.safe_dump(o, allow_unicode=True, sort_keys=sort_keys, **kwargs)
 
 
 def read_file(filename, TYPE=True, errors='ignore', **kwargs):
