@@ -249,10 +249,10 @@ def read_file(filename, TYPE=True, errors='ignore', **kwargs):
             raise e
 
 
-def write_file(filename, obj, mode=None):
+def write_file(filename, obj, mode=None, sort_keys=False):
     try:
         ext = filename.rsplit('.')[-1]
-        if mode is None and ext in {'json', 'yml', 'pkl'}:
+        if mode is None and ext in {'json', 'yaml', 'pkl'}:
             raise ValueError(f'If you save file with .{ext} extesnion, you need to set mode')
             #
             # if ext in {'json', 'yml', 'pkl'}:
@@ -277,9 +277,9 @@ def write_file(filename, obj, mode=None):
         else:
             with open(filename, 'w') as f:
                 if mode == 'json':
-                    f.write(jdumps(obj))
+                    f.write(jdumps(obj, sort_keys=sort_keys))
                 elif mode == 'yaml':
-                    f.write(ydumps(obj))
+                    f.write(ydumps(obj, sort_keys=sort_keys))
                 else:
                     f.write(obj)
         return True
