@@ -244,7 +244,7 @@ def read_file(filename, TYPE=True, errors='ignore', **kwargs):
                 return f.read()
 
     except Exception as e:
-        print(traceback.format_exc())
+        logging.getLogger().error(''.join(format_exception(e)))
         if errors != 'ignore':
             raise e
 
@@ -284,7 +284,8 @@ def write_file(filename, obj, mode=None, sort_keys=False):
                     f.write(obj)
         return True
     except Exception as e:
-        return repr(e)
+        logging.getLogger().error(''.join(format_exception(e)))
+        return
 
 
 @contextmanager
@@ -364,7 +365,6 @@ def log_errors(logger=None, *exceptions, level='ERROR'):
         yield
     except exceptions as e:
         print_log(''.join(format_exception(e)))
-        print('log_errors manager')
         raise e
 
 
