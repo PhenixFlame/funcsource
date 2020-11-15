@@ -91,3 +91,4 @@ def format_exception(e, need_locals=True):
     yield "{}: {}\n".format(type(e).__name__, str(e))
 
     yield from format_traceback(tb, need_locals)
+    yield "{}: {}\n".format(type(e).__name__, str(e))  # duplicate for convenience
