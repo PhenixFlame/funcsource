@@ -32,7 +32,7 @@ except:
     """.split('\n')
 
 
-    class tcolors:
+    class TColors:
         HEADER = '\033[95m'
         OKBLUE = '\033[94m'
         OKCYAN = '\033[96m'
@@ -48,7 +48,7 @@ except:
         try:
             exec(i.strip())
         except ModuleNotFoundError as e:
-            print(tcolors.WARNING + repr(e) + tcolors.ENDC)
+            print(TColors.WARNING + repr(e) + TColors.ENDC)
 
 
 def head(df: pd.DataFrame, n=10):
@@ -205,12 +205,12 @@ def ydumps(o, sort_keys=True, **kwargs):
     return yaml.safe_dump(o, allow_unicode=True, sort_keys=sort_keys, **kwargs)
 
 
-def read_file(filename, TYPE=True, errors='ignore', **kwargs):
+def read_file(filename, filetype=True, errors='ignore', **kwargs):
     """
     read file with kwargs:
-    Defult TYPE = extpath of file
+    Defult filetype = extpath of file
 
-    TYPE variants:
+    filetype variants:
         pkl: pickle.load(f)
         yaml: yaml.load(f)
         json: json.load(f)
@@ -226,19 +226,19 @@ def read_file(filename, TYPE=True, errors='ignore', **kwargs):
     mode = kwargs.get('mode', 'r')
     encoding = kwargs.get('encoding', 'utf-8') if 'b' not in mode else None
 
-    if TYPE and isinstance(TYPE, bool):
-        TYPE = os.path.splitext(filename)[-1][1:]
+    if filetype and isinstance(filetype, bool):
+        filetype = os.path.splitext(filename)[-1][1:]
     try:
-        if TYPE == 'pkl':
+        if filetype == 'pkl':
             with open(filename, 'rb') as f:
                 return pickle.load(f)
 
         with open(filename, mode=mode, encoding=encoding) as f:
-            if TYPE == 'yaml':
+            if filetype == 'yaml':
                 return yaml.safe_load(f)
-            elif TYPE == "json":
+            elif filetype == "json":
                 return json.loads(f.read())
-            # elif TYPE == 'csv':
+            # elif filetype == 'csv':
             #     return list(csv.reader(f, **kwargs))
             else:
                 return f.read()
