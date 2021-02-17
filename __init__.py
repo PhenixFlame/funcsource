@@ -487,3 +487,7 @@ class Timer:
         yield
         self.time()
         return True
+
+
+def walk(directory, extension=""):
+    return [os.path.join(dirpath, f) for dirpath, dnames, fnames in os.walk(directory) for f in fnames if f.endswith(extension)]
