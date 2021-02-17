@@ -51,11 +51,15 @@ except:
             print(TColors.WARNING + repr(e) + TColors.ENDC)
 
 
-def head(df: pd.DataFrame, n=10):
-    """
-    pretty print dataframe
-    """
-    print(df.head(n).to_string())
+try:
+    def head(df: pd.DataFrame, n=10):
+        """
+        pretty print dataframe
+        """
+        print(df.head(n).to_string())
+
+except:
+    pass
 
 
 # Used as @fs.cached
