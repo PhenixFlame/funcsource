@@ -353,6 +353,10 @@ def logged(*exceptions, logger=None, level='ERROR'):
     return decorator
 
 
+def exc(e):
+    return "{}: {}\n".format(type(e).__name__, str(e))
+
+
 @contextmanager
 def log_errors(logger=None, *exceptions, level='ERROR', format="FULL"):
     if not exceptions:
