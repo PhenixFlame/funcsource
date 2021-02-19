@@ -354,7 +354,7 @@ def logged(*exceptions, logger=None, level='ERROR'):
 
 
 @contextmanager
-def log_errors(logger=None, *exceptions, level='ERROR'):
+def log_errors(logger=None, *exceptions, level='ERROR', format="FULL"):
     if not exceptions:
         exceptions = (Exception,)
 
@@ -368,7 +368,10 @@ def log_errors(logger=None, *exceptions, level='ERROR'):
     try:
         yield
     except exceptions as e:
-        print_log(''.join(format_exception(e)))
+        if format == "FULL":
+            print_log(''.join(format_exception(e)))
+        else:
+            print_log("{}: {}\n".format(type(e).__name__, str(e)))
         raise e
 
 
