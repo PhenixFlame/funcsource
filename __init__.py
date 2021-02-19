@@ -358,7 +358,7 @@ def exc(e):
 
 
 @contextmanager
-def log_errors(logger=None, *exceptions, level='ERROR', format="FULL"):
+def log_errors(logger=None, *exceptions, level='ERROR', format="FULL", catch=False):
     if not exceptions:
         exceptions = (Exception,)
 
@@ -376,13 +376,17 @@ def log_errors(logger=None, *exceptions, level='ERROR', format="FULL"):
             print_log(''.join(format_exception(e)))
         else:
             print_log("{}: {}\n".format(type(e).__name__, str(e)))
-        raise e
+
+        if not catch:
+            raise e
 
 
 class Timer:
     asctime = time.asctime
     logger = logging.getLogger('Timer')
-
+    """
+    TODO: logger first instead name
+    """
     def __init__(self, name=None, logger=None, level='DEBUG', alert_period=10):
 
         if logger is not None:
