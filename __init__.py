@@ -256,6 +256,11 @@ def read_file(filename, filetype=True, errors='ignore', **kwargs):
 def write_file(filename, obj, mode=None, sort_keys=False):
     try:
         ext = filename.rsplit('.')[-1]
+
+        dirname = os.path.dirname(filename)
+        if dirname and not os.path.exists(dirname):
+            os.makedirs(dirname, exist_ok=True)
+
         if mode is None and ext in {'json', 'yaml', 'pkl'}:
             raise ValueError(f'If you save file with .{ext} extesnion, you need to set mode')
             #
