@@ -16,6 +16,7 @@ import time
 
 """
 TODO: add logging for all functions instead of print
+Добавить бекап все вызовов функции или ее лог на случай если потребуется что-то откатить
 """
 
 try:
