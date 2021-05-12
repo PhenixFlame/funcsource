@@ -62,6 +62,13 @@ try:
 except:
     pass
 
+from datetime import datetime
+
+
+def ts_to_date(ts: (str, int)) -> str:
+    ts = int(ts)
+    return datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+
 
 # Used as @fs.cached
 def cached(cache, key=lambda *args, **kwargs: args):
